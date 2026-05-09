@@ -106,7 +106,7 @@ final class CallTreeService {
 	}
 
 	private static String joinWithThreeBlankLines(final List<String> trees) {
-		return String.join("\n\n\n", trees);
+		return String.join("\n\n\n\n", trees);
 	}
 
 	private static final class RenderNode {
