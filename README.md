@@ -9,6 +9,9 @@ java -jar .\build\libs\dept-tree.jar --root "com.example.samples.Hoge" --analyze
 結果
 
 ```text
+# ===========
+# root method ( method1 )
+# ===========
 com.example.samples.Hoge#method1(String, String)
  |
  `--- com.example.samples.Fuga#method1(Long)
@@ -30,6 +33,8 @@ com.example.samples.Hoge#method1(String, String)
  |      `--- com.example.samples.Taco#method1()
 
 
-
+# ===========
+# root method ( method2 )
+# ===========
 com.example.samples.Hoge#method2(Date)
 ```

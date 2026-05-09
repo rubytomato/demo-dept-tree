@@ -4,7 +4,7 @@
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%C] %-5level [%t] %msg%n%throwable"/>
         </Console>
-        <File name="LogFile" fileName="./dept-tree.log" append="false">
+        <File name="LogFile" fileName="./${sys:depttree.logFileName:-dept-tree.log}" append="false">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%C] %-5level [%t] %msg%n%throwable"/>
         </File>
     </Appenders>

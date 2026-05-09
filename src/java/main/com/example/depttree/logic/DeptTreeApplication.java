@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
@@ -153,7 +152,7 @@ public class DeptTreeApplication {
 		return markerClasses;
 	}
 
-	private static String buildMarkerReport(final String treeOutput, final LinkedHashSet<String> markerClasses) {
+	static String buildMarkerReport(final String treeOutput, final LinkedHashSet<String> markerClasses) {
 		final Map<String, Integer> counts = new LinkedHashMap<String, Integer>();
 		for (final String markerClass : markerClasses) {
 			counts.put(markerClass, Integer.valueOf(0));
@@ -173,7 +172,11 @@ public class DeptTreeApplication {
 		lines.add("# marker classes report");
 		lines.add("# ==============");
 		for (final Map.Entry<String, Integer> entry : counts.entrySet()) {
-			lines.add("* " + entry.getKey() + " (" + entry.getValue() + ")");
+			if (entry.getValue().intValue() == 0) {
+				lines.add("* " + entry.getKey());
+			} else {
+				lines.add("* " + entry.getKey() + " (" + entry.getValue() + ")");
+			}
 		}
 		return String.join("\n", lines);
 	}

@@ -12,7 +12,8 @@ import com.example.depttree.logic.DeptTreeApplication;
  */
 public class Main {
 
-	private static final Logger LOGGER = LogManager.getLogger(Main.class);
+	static final String LOG_FILE_NAME_PROPERTY = "depttree.logFileName";
+	static final String DEFAULT_LOG_FILE_NAME = "dept-tree.log";
 
 	/**
 	 * アプリケーションを起動します。
@@ -20,19 +21,48 @@ public class Main {
 	 * @param args CLI引数
 	 */
 	public static void main(final String[] args) {
+		System.setProperty(LOG_FILE_NAME_PROPERTY, resolveLogFileName(args));
+		final Logger logger = LogManager.getLogger(Main.class);
 		final long startedAt = System.nanoTime();
-		LOGGER.info("main started. args={}", Arrays.toString(args));
+		logger.info("main started. args={}", Arrays.toString(args));
 		int exitCode = 1;
 		try {
 			exitCode = new DeptTreeApplication().run(args);
 		} catch (final RuntimeException exception) {
-			LOGGER.error("Unexpected error occurred.", exception);
+			logger.error("Unexpected error occurred.", exception);
 		} finally {
 			final long elapsedMillis = (System.nanoTime() - startedAt) / 1_000_000L;
-			LOGGER.info("main finished. exitCode={}, elapsedMillis={}", exitCode, elapsedMillis);
+			logger.info("main finished. exitCode={}, elapsedMillis={}", exitCode, elapsedMillis);
 		}
 		if (exitCode != 0) {
 			System.exit(exitCode);
 		}
+	}
+
+	static String resolveLogFileName(final String[] args) {
+		final String rootClass = extractRootClass(args);
+		if (rootClass == null || rootClass.trim().isEmpty()) {
+			return DEFAULT_LOG_FILE_NAME;
+		}
+		return rootClass.trim() + ".log";
+	}
+
+	private static String extractRootClass(final String[] args) {
+		if (args == null) {
+			return null;
+		}
+		for (int index = 0; index < args.length; index++) {
+			final String argument = args[index];
+			if ("--root".equals(argument) || "-r".equals(argument)) {
+				if (index + 1 < args.length) {
+					return args[index + 1];
+				}
+				return null;
+			}
+			if (argument != null && argument.startsWith("--root=")) {
+				return argument.substring("--root=".length());
+			}
+		}
+		return null;
 	}
 }
