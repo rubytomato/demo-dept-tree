@@ -49,13 +49,22 @@ final class MethodSignatureFormatter {
 		case Type.DOUBLE:
 			return "double";
 		case Type.ARRAY:
-			return toSimpleType(type.getElementType()) + "[]";
+			final StringBuilder arrayType = new StringBuilder(toSimpleType(type.getElementType()));
+			for (int dimension = 0; dimension < type.getDimensions(); dimension++) {
+				arrayType.append("[]");
+			}
+			return arrayType.toString();
 		case Type.OBJECT:
-			final String className = type.getClassName();
-			final int separatorIndex = className.lastIndexOf('.');
-			return separatorIndex >= 0 ? className.substring(separatorIndex + 1) : className;
+			return toSimpleClassName(type.getClassName());
 		default:
 			return type.getClassName();
 		}
+	}
+
+	private static String toSimpleClassName(final String className) {
+		final int packageSeparatorIndex = className.lastIndexOf('.');
+		final String simpleName = packageSeparatorIndex >= 0 ? className.substring(packageSeparatorIndex + 1) : className;
+		final int innerClassSeparatorIndex = simpleName.lastIndexOf('$');
+		return innerClassSeparatorIndex >= 0 ? simpleName.substring(innerClassSeparatorIndex + 1) : simpleName;
 	}
 }
