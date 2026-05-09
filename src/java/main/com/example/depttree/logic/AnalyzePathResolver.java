@@ -57,8 +57,9 @@ final class AnalyzePathResolver {
 		if (isAbsolutePattern(pattern)) {
 			return normalizePath(pattern);
 		}
-		final String base = normalizePath(Paths.get("").toAbsolutePath().toString());
-		return normalizePath(base + "/" + pattern);
+		final Path base = Paths.get("").toAbsolutePath();
+		final Path resolvedPattern = base.resolve(pattern).normalize();
+		return normalizePath(resolvedPattern.toString());
 	}
 
 	private static boolean isAbsolutePattern(final String pattern) {
