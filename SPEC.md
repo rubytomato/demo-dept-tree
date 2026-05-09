@@ -18,7 +18,7 @@
 
 * 実行可能形式のjarとしてビルドする
 
-* アプリケーションの実行例例
+* アプリケーションの実行例
 
   ```text
   java -jar dept-tree.jar --root "com.example.Hoge" --analyze ./target/classes/**/*.class --analyze ./libs/*.jar --depth 20
