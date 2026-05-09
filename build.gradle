@@ -42,6 +42,7 @@ dependencies {
 
 	// ASM (バイトコード解析)
 	implementation "org.ow2.asm:asm:${asmVersion}"
+	implementation "org.ow2.asm:asm-tree:${asmVersion}"
 	implementation "org.ow2.asm:asm-util:${asmVersion}"
 
 	// picocli (CLIオプション解析)
