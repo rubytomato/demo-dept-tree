@@ -2,7 +2,7 @@ package com.example.samples;
 
 import java.util.Date;
 
-public class Hoge {
+public class Hoge extends Hogo {
 
     public void method1(String a, String b) {
         System.out.println("Hoge#method1: " + a + b);
@@ -15,6 +15,8 @@ public class Hoge {
             System.out.println("Hoge#method1: " + e.getMessage());
             method4();
         }
+
+        method3();
 
         Poyo poyo = new Poyo();
         poyo.method3(a + b);

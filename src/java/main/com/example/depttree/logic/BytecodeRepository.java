@@ -92,6 +92,12 @@ final class BytecodeRepository {
 		if (declaredMethod != null) {
 			resolved.add(declaredKey);
 		}
+		if (methodCall.virtualInvocation) {
+			final MethodKey virtualTarget = resolveVirtualMethod(methodCall.owner, methodCall.name, methodCall.descriptor);
+			if (virtualTarget != null) {
+				resolved.add(virtualTarget);
+			}
+		}
 		if (methodCall.interfaceInvocation) {
 			for (final AnalyzedClass analyzedClass : classes.values()) {
 				if (!analyzedClass.concrete) {
@@ -278,11 +284,13 @@ final class BytecodeRepository {
 			if ("<init>".equals(methodInstruction.name) || "<clinit>".equals(methodInstruction.name)) {
 				continue;
 			}
+			final int opcode = methodInstruction.getOpcode();
 			final int currentIndex = instructionIndexes.get(instruction).intValue();
 			final boolean exceptionHandler = isExceptionHandlerInstruction(currentIndex, exceptionRanges);
 			calls.add(new MethodCall(methodInstruction.owner.replace('/', '.'), methodInstruction.name,
 				methodInstruction.desc, exceptionHandler,
-				methodInstruction.getOpcode() == Opcodes.INVOKEINTERFACE));
+				opcode == Opcodes.INVOKEINTERFACE,
+				opcode == Opcodes.INVOKEVIRTUAL));
 		}
 		return calls;
 	}
@@ -352,14 +360,16 @@ final class BytecodeRepository {
 		final String descriptor;
 		final boolean exceptionHandler;
 		final boolean interfaceInvocation;
+		final boolean virtualInvocation;
 
 		MethodCall(final String owner, final String name, final String descriptor, final boolean exceptionHandler,
-				final boolean interfaceInvocation) {
+				final boolean interfaceInvocation, final boolean virtualInvocation) {
 			this.owner = owner;
 			this.name = name;
 			this.descriptor = descriptor;
 			this.exceptionHandler = exceptionHandler;
 			this.interfaceInvocation = interfaceInvocation;
+			this.virtualInvocation = virtualInvocation;
 		}
 	}
 }
