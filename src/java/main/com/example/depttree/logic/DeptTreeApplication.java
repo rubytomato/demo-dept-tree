@@ -75,13 +75,20 @@ public class DeptTreeApplication {
 				throw new IllegalArgumentException("No root methods were found: " + options.rootClass);
 			}
 			LOGGER.info("Root methods: {}", rootMethods.stream().map(method -> method.name).collect(Collectors.toList()));
+			repository.prepareForRootProcessing(rootMethods);
 			final CallTreeService callTreeService = new CallTreeService(repository, options.depth);
-			final String treeOutput = callTreeService.buildTrees(rootMethods);
 			final LinkedHashSet<String> markerClasses = loadMarkerClasses(options.markerPath);
-			if (markerClasses.isEmpty()) {
-				LOGGER.info("{}", treeOutput);
-			} else {
-				LOGGER.info("{}\n\n\n{}", treeOutput, buildMarkerReport(treeOutput, markerClasses));
+			final Map<String, Integer> markerCounts = initializeMarkerCounts(markerClasses);
+			for (int index = 0; index < rootMethods.size(); index++) {
+				final MethodKey rootMethod = rootMethods.get(index);
+				final String treeOutput = callTreeService.buildTree(rootMethod);
+				accumulateMarkerCounts(treeOutput, markerCounts);
+				final boolean hasFollowingOutput = index < rootMethods.size() - 1 || !markerCounts.isEmpty();
+				LOGGER.info("{}{}", treeOutput, hasFollowingOutput ? "\n\n\n" : "");
+				repository.releaseProcessedRoot(rootMethod);
+			}
+			if (!markerCounts.isEmpty()) {
+				LOGGER.info("{}", buildMarkerReport(markerCounts));
 			}
 			return 0;
 		} catch (final Exception exception) {
@@ -153,10 +160,20 @@ public class DeptTreeApplication {
 	}
 
 	static String buildMarkerReport(final String treeOutput, final LinkedHashSet<String> markerClasses) {
+		final Map<String, Integer> counts = initializeMarkerCounts(markerClasses);
+		accumulateMarkerCounts(treeOutput, counts);
+		return buildMarkerReport(counts);
+	}
+
+	private static Map<String, Integer> initializeMarkerCounts(final LinkedHashSet<String> markerClasses) {
 		final Map<String, Integer> counts = new LinkedHashMap<String, Integer>();
 		for (final String markerClass : markerClasses) {
 			counts.put(markerClass, Integer.valueOf(0));
 		}
+		return counts;
+	}
+
+	private static void accumulateMarkerCounts(final String treeOutput, final Map<String, Integer> counts) {
 		for (final String line : treeOutput.split("\\n")) {
 			final Matcher matcher = TREE_CLASS_PATTERN.matcher(line);
 			if (!matcher.find()) {
@@ -167,6 +184,9 @@ public class DeptTreeApplication {
 				counts.put(className, Integer.valueOf(counts.get(className).intValue() + 1));
 			}
 		}
+	}
+
+	private static String buildMarkerReport(final Map<String, Integer> counts) {
 		final List<String> lines = new ArrayList<String>();
 		lines.add("# ==============");
 		lines.add("# marker classes report");

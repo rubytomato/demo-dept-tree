@@ -24,12 +24,12 @@ final class CallTreeService {
 	String buildTrees(final List<MethodKey> rootMethods) {
 		final List<String> trees = new ArrayList<String>();
 		for (final MethodKey rootMethod : rootMethods) {
-			trees.add(buildSingleTree(rootMethod));
+			trees.add(buildTree(rootMethod));
 		}
 		return joinWithThreeBlankLines(trees);
 	}
 
-	private String buildSingleTree(final MethodKey rootMethod) {
+	String buildTree(final MethodKey rootMethod) {
 		final List<String> lines = new ArrayList<String>();
 		lines.add("# ===========");
 		lines.add("# root method ( " + rootMethod.name + " )");

@@ -39,6 +39,7 @@ final class BytecodeRepository {
 	private final Map<String, AnalyzedClass> classes = new HashMap<String, AnalyzedClass>();
 	private final Map<String, String> classSources = new HashMap<String, String>();
 	private final Map<MethodKey, AnalyzedMethod> methods = new HashMap<MethodKey, AnalyzedMethod>();
+	private final Map<MethodKey, Integer> retainedMethodCounts = new HashMap<MethodKey, Integer>();
 
 	BytecodeRepository() {
 	}
@@ -85,6 +86,39 @@ final class BytecodeRepository {
 		return methods.get(methodKey);
 	}
 
+	void prepareForRootProcessing(final List<MethodKey> rootMethods) {
+		retainedMethodCounts.clear();
+		for (final MethodKey rootMethod : rootMethods) {
+			for (final MethodKey reachableMethod : collectReachableMethods(rootMethod)) {
+				final Integer currentCount = retainedMethodCounts.get(reachableMethod);
+				retainedMethodCounts.put(reachableMethod,
+					Integer.valueOf(currentCount == null ? 1 : currentCount.intValue() + 1));
+			}
+		}
+		LOGGER.debug("Prepared retained method counts for {} reachable methods.",
+			Integer.valueOf(retainedMethodCounts.size()));
+	}
+
+	void releaseProcessedRoot(final MethodKey rootMethod) {
+		int releasedMethodCount = 0;
+		for (final MethodKey reachableMethod : collectReachableMethods(rootMethod)) {
+			final Integer currentCount = retainedMethodCounts.get(reachableMethod);
+			if (currentCount == null) {
+				continue;
+			}
+			if (currentCount.intValue() <= 1) {
+				retainedMethodCounts.remove(reachableMethod);
+				if (methods.remove(reachableMethod) != null) {
+					releasedMethodCount++;
+				}
+			} else {
+				retainedMethodCounts.put(reachableMethod, Integer.valueOf(currentCount.intValue() - 1));
+			}
+		}
+		LOGGER.debug("Released {} analyzed methods after processing root {}.",
+			Integer.valueOf(releasedMethodCount), rootMethod);
+	}
+
 	List<MethodKey> resolveCallTargets(final MethodCall methodCall) {
 		final LinkedHashSet<MethodKey> resolved = new LinkedHashSet<MethodKey>();
 		final MethodKey declaredKey = new MethodKey(methodCall.owner, methodCall.name, methodCall.descriptor);
@@ -126,6 +160,30 @@ final class BytecodeRepository {
 			}
 		}
 		return new ArrayList<MethodKey>(resolved);
+	}
+
+	private Set<MethodKey> collectReachableMethods(final MethodKey rootMethod) {
+		final LinkedHashSet<MethodKey> reachableMethods = new LinkedHashSet<MethodKey>();
+		collectReachableMethods(rootMethod, reachableMethods);
+		return reachableMethods;
+	}
+
+	private void collectReachableMethods(final MethodKey methodKey, final Set<MethodKey> reachableMethods) {
+		if (!reachableMethods.add(methodKey)) {
+			return;
+		}
+		final AnalyzedMethod analyzedMethod = methods.get(methodKey);
+		if (analyzedMethod == null) {
+			return;
+		}
+		for (final MethodCall methodCall : analyzedMethod.methodCalls) {
+			if (isExcludedPackage(methodCall.owner)) {
+				continue;
+			}
+			for (final MethodKey target : resolveCallTargets(methodCall)) {
+				collectReachableMethods(target, reachableMethods);
+			}
+		}
 	}
 
 	private boolean implementsInterface(final String className, final String interfaceName) {
@@ -320,6 +378,17 @@ final class BytecodeRepository {
 			classNames.add(internalName.replace('/', '.'));
 		}
 		return classNames;
+	}
+
+	private static boolean isExcludedPackage(final String className) {
+		return className.startsWith("java.")
+			|| className.startsWith("javax.")
+			|| className.startsWith("sun.")
+			|| className.startsWith("com.sun.")
+			|| className.startsWith("jdk.")
+			|| className.startsWith("org.")
+			|| className.startsWith("net.")
+			|| className.startsWith("io.");
 	}
 
 	static final class AnalyzedClass {
