@@ -97,7 +97,6 @@ final class CallTreeService {
 			|| className.startsWith("com.sun.")
 			|| className.startsWith("jdk.")
 			|| className.startsWith("org.")
-			|| className.startsWith("net.")
 			|| className.startsWith("io.");
 	}
 

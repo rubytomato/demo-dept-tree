@@ -40,6 +40,7 @@ final class BytecodeRepository {
 	private final Map<String, String> classSources = new HashMap<String, String>();
 	private final Map<MethodKey, AnalyzedMethod> methods = new HashMap<MethodKey, AnalyzedMethod>();
 	private final Map<MethodKey, Integer> retainedMethodCounts = new HashMap<MethodKey, Integer>();
+	private int loadedClassFileCount;
 
 	BytecodeRepository() {
 	}
@@ -49,6 +50,7 @@ final class BytecodeRepository {
 		for (final Path target : targets) {
 			repository.loadTarget(target);
 		}
+		LOGGER.info("Loaded {} class files from analyze targets.", Integer.valueOf(repository.loadedClassFileCount));
 		return repository;
 	}
 
@@ -95,7 +97,7 @@ final class BytecodeRepository {
 					Integer.valueOf(currentCount == null ? 1 : currentCount.intValue() + 1));
 			}
 		}
-		LOGGER.debug("Prepared retained method counts for {} reachable methods.",
+		LOGGER.info("Prepared retained method counts for {} reachable methods.",
 			Integer.valueOf(retainedMethodCounts.size()));
 	}
 
@@ -115,7 +117,7 @@ final class BytecodeRepository {
 				retainedMethodCounts.put(reachableMethod, Integer.valueOf(currentCount.intValue() - 1));
 			}
 		}
-		LOGGER.debug("Released {} analyzed methods after processing root {}.",
+		LOGGER.info("Released {} analyzed methods after processing root {}.",
 			Integer.valueOf(releasedMethodCount), rootMethod);
 	}
 
@@ -279,6 +281,7 @@ final class BytecodeRepository {
 	private void parseClassBytes(final byte[] classBytes, final String source) {
 		final ClassNode classNode = new ClassNode();
 		new ClassReader(classBytes).accept(classNode, 0);
+		loadedClassFileCount++;
 		final String className = classNode.name.replace('/', '.');
 		LOGGER.trace("Loaded class file: {} from {}", className, source);
 		final String superName = classNode.superName == null ? null : classNode.superName.replace('/', '.');

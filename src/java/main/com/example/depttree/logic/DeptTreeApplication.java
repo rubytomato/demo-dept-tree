@@ -193,9 +193,9 @@ public class DeptTreeApplication {
 		lines.add("# ==============");
 		for (final Map.Entry<String, Integer> entry : counts.entrySet()) {
 			if (entry.getValue().intValue() == 0) {
-				lines.add("* " + entry.getKey());
+				lines.add("     " + entry.getKey());
 			} else {
-				lines.add("* (" + entry.getValue() + ") " + entry.getKey());
+				lines.add("(" + entry.getValue() + ") " + entry.getKey());
 			}
 		}
 		return String.join("\n", lines);

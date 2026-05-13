@@ -21,7 +21,7 @@ final class CliOptions {
 	@Option(names = {"-m", "--marker"}, description = "カウント対象クラス一覧ファイル")
 	String markerPath;
 
-	@Option(names = {"-d", "--depth"}, defaultValue = "20", description = "解析深度")
+	@Option(names = {"-d", "--depth"}, defaultValue = "100", description = "解析深度")
 	int depth;
 
 	@Option(names = {"-h", "--help"}, usageHelp = true, description = "ヘルプを表示")
