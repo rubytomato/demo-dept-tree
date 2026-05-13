@@ -66,7 +66,8 @@ public class DeptTreeApplication {
 				throw new IllegalArgumentException("No analyze targets were found.");
 			}
 			analyzeTargets = expandJarTargets(analyzeTargets);
-			final BytecodeRepository repository = BytecodeRepository.load(analyzeTargets);
+			final PackageExclusions packageExclusions = loadPackageExclusions(options.excludePath);
+			final BytecodeRepository repository = BytecodeRepository.load(analyzeTargets, packageExclusions);
 			if (!repository.hasClass(options.rootClass)) {
 				throw new IllegalArgumentException("Root class was not found in analyze targets: " + options.rootClass);
 			}
@@ -158,6 +159,24 @@ public class DeptTreeApplication {
 			throw new IllegalArgumentException("Marker file is empty: " + markerPath);
 		}
 		return markerClasses;
+	}
+
+	private static PackageExclusions loadPackageExclusions(final String excludePath) throws IOException {
+		if (excludePath == null || excludePath.trim().isEmpty()) {
+			return PackageExclusions.defaultExclusions();
+		}
+		final Path path = Paths.get(excludePath);
+		if (!Files.isRegularFile(path)) {
+			throw new IllegalArgumentException("Exclude file does not exist: " + excludePath);
+		}
+		final List<String> excludedPackages = new ArrayList<String>();
+		for (final String line : Files.readAllLines(path, StandardCharsets.UTF_8)) {
+			final String trimmed = line.replace("\uFEFF", "").trim();
+			if (!trimmed.isEmpty()) {
+				excludedPackages.add(trimmed);
+			}
+		}
+		return PackageExclusions.from(excludedPackages);
 	}
 
 	static String buildMarkerReport(final String treeOutput, final LinkedHashSet<String> markerClasses) {

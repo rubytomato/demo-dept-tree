@@ -21,6 +21,9 @@ final class CliOptions {
 	@Option(names = {"-m", "--marker"}, description = "カウント対象クラス一覧ファイル")
 	String markerPath;
 
+	@Option(names = {"-e", "--exclude"}, description = "追跡除外パッケージ一覧ファイル")
+	String excludePath;
+
 	@Option(names = {"-d", "--depth"}, defaultValue = "100", description = "解析深度")
 	int depth;
 

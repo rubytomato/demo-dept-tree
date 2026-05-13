@@ -36,6 +36,7 @@ final class BytecodeRepository {
 
 	private static final Logger LOGGER = LogManager.getLogger(BytecodeRepository.class);
 
+	private final PackageExclusions packageExclusions;
 	private final Map<String, AnalyzedClass> classes = new HashMap<String, AnalyzedClass>();
 	private final Map<String, String> classSources = new HashMap<String, String>();
 	private final Map<MethodKey, AnalyzedMethod> methods = new HashMap<MethodKey, AnalyzedMethod>();
@@ -43,15 +44,28 @@ final class BytecodeRepository {
 	private int loadedClassFileCount;
 
 	BytecodeRepository() {
+		this(PackageExclusions.defaultExclusions());
+	}
+
+	BytecodeRepository(final PackageExclusions packageExclusions) {
+		this.packageExclusions = packageExclusions;
 	}
 
 	static BytecodeRepository load(final List<Path> targets) throws IOException {
-		final BytecodeRepository repository = new BytecodeRepository();
+		return load(targets, PackageExclusions.defaultExclusions());
+	}
+
+	static BytecodeRepository load(final List<Path> targets, final PackageExclusions packageExclusions) throws IOException {
+		final BytecodeRepository repository = new BytecodeRepository(packageExclusions);
 		for (final Path target : targets) {
 			repository.loadTarget(target);
 		}
 		LOGGER.info("Loaded {} class files from analyze targets.", Integer.valueOf(repository.loadedClassFileCount));
 		return repository;
+	}
+
+	boolean isExcludedClass(final String className) {
+		return packageExclusions.isExcludedClass(className);
 	}
 
 	boolean hasClass(final String className) {
@@ -179,7 +193,7 @@ final class BytecodeRepository {
 			return;
 		}
 		for (final MethodCall methodCall : analyzedMethod.methodCalls) {
-			if (isExcludedPackage(methodCall.owner)) {
+			if (isExcludedClass(methodCall.owner)) {
 				continue;
 			}
 			for (final MethodKey target : resolveCallTargets(methodCall)) {
@@ -382,17 +396,6 @@ final class BytecodeRepository {
 			classNames.add(internalName.replace('/', '.'));
 		}
 		return classNames;
-	}
-
-	private static boolean isExcludedPackage(final String className) {
-		return className.startsWith("java.")
-			|| className.startsWith("javax.")
-			|| className.startsWith("sun.")
-			|| className.startsWith("com.sun.")
-			|| className.startsWith("jdk.")
-			|| className.startsWith("org.")
-			|| className.startsWith("net.")
-			|| className.startsWith("io.");
 	}
 
 	static final class AnalyzedClass {

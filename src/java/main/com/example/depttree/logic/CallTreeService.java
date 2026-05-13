@@ -50,7 +50,7 @@ final class CallTreeService {
 		stack.add(currentMethod);
 		final List<RenderNode> children = new ArrayList<RenderNode>();
 		for (final MethodCall methodCall : analyzedMethod.methodCalls) {
-			if (isExcludedPackage(methodCall.owner)) {
+			if (repository.isExcludedClass(methodCall.owner)) {
 				continue;
 			}
 			if (depth >= maxDepth) {
@@ -90,16 +90,6 @@ final class CallTreeService {
 			final Set<MethodKey> childStack = new LinkedHashSet<MethodKey>(stack);
 			renderChildren(target, depth + 1, childPrefix, childStack, lines);
 		}
-	}
-
-	private static boolean isExcludedPackage(final String className) {
-		return className.startsWith("java.")
-			|| className.startsWith("javax.")
-			|| className.startsWith("sun.")
-			|| className.startsWith("com.sun.")
-			|| className.startsWith("jdk.")
-			|| className.startsWith("org.")
-			|| className.startsWith("io.");
 	}
 
 	private static String joinLines(final List<String> lines) {

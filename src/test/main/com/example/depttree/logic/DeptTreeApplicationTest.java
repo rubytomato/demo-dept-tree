@@ -51,6 +51,20 @@ class DeptTreeApplicationTest {
 	}
 
 	@Test
+	void excludesConfiguredExactPackage() throws Exception {
+		final BytecodeRepository repository = BytecodeRepository.load(
+			Arrays.asList(Paths.get("build/classes/java/main/com/example/samples")),
+			PackageExclusions.from(Arrays.asList("com.example.samples")));
+		final CallTreeService callTreeService = new CallTreeService(repository, 20);
+
+		final String tree = callTreeService.buildTree(
+			new MethodKey("com.example.samples.Hoge", "method1", "(Ljava/lang/String;Ljava/lang/String;)V"));
+
+		assertFalse(tree.contains("com.example.samples.Fuga#method1(Long)"));
+		assertFalse(tree.contains("com.example.samples.Poyo#method3(String)"));
+	}
+
+	@Test
 	void releasesAnalyzedMethodsThatAreNoLongerNeededByRemainingRoots() throws Exception {
 		final BytecodeRepository repository = BytecodeRepository.load(
 			Arrays.asList(Paths.get("build/classes/java/main/com/example/samples")));
