@@ -32,6 +32,7 @@ import picocli.CommandLine.ParameterException;
 public class DeptTreeApplication {
 
 	private static final Logger LOGGER = LogManager.getLogger(DeptTreeApplication.class);
+	private static final String LINE_SEPARATOR = System.lineSeparator();
 	private static final Pattern TREE_CLASS_PATTERN = Pattern.compile(
 		"(?:\\[UNRESOLVED\\] |\\[EXCEPTION\\] |\\[CIRCULAR\\] )?([A-Za-z_$][\\w$]*(?:\\.[A-Za-z_$][\\w$]*)*)#");
 
@@ -84,7 +85,7 @@ public class DeptTreeApplication {
 				final String treeOutput = callTreeService.buildTree(rootMethod);
 				accumulateMarkerCounts(treeOutput, markerCounts);
 				final boolean hasFollowingOutput = index < rootMethods.size() - 1 || !markerCounts.isEmpty();
-				LOGGER.info("\n{}{}", treeOutput, hasFollowingOutput ? "\n\n\n" : "");
+				LOGGER.info("{}{}{}", LINE_SEPARATOR, treeOutput, hasFollowingOutput ? repeatLineSeparator(3) : "");
 				repository.releaseProcessedRoot(rootMethod);
 			}
 			if (!markerCounts.isEmpty()) {
@@ -174,7 +175,7 @@ public class DeptTreeApplication {
 	}
 
 	private static void accumulateMarkerCounts(final String treeOutput, final Map<String, Integer> counts) {
-		for (final String line : treeOutput.split("\\n")) {
+		for (final String line : treeOutput.split("\\R")) {
 			final Matcher matcher = TREE_CLASS_PATTERN.matcher(line);
 			if (!matcher.find()) {
 				continue;
@@ -198,6 +199,14 @@ public class DeptTreeApplication {
 				lines.add("(" + entry.getValue() + ") " + entry.getKey());
 			}
 		}
-		return String.join("\n", lines);
+		return String.join(LINE_SEPARATOR, lines);
+	}
+
+	private static String repeatLineSeparator(final int count) {
+		final StringBuilder builder = new StringBuilder();
+		for (int index = 0; index < count; index++) {
+			builder.append(LINE_SEPARATOR);
+		}
+		return builder.toString();
 	}
 }

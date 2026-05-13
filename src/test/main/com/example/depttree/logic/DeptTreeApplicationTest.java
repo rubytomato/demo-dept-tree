@@ -12,6 +12,8 @@ import org.junit.jupiter.api.Test;
 
 class DeptTreeApplicationTest {
 
+	private static final String LINE_SEPARATOR = System.lineSeparator();
+
 	@Test
 	void resolvesConcreteMethodInheritedFromAbstractSuperclass() throws Exception {
 		final BytecodeRepository repository = BytecodeRepository.load(
@@ -34,8 +36,18 @@ class DeptTreeApplicationTest {
 		final String tree = callTreeService.buildTree(
 			new MethodKey("com.example.samples.Hoge", "method1", "(Ljava/lang/String;Ljava/lang/String;)V"));
 
-		assertTrue(tree.startsWith("# ===========\n# root method ( method1 )"));
+		assertTrue(tree.startsWith("# ===========" + LINE_SEPARATOR + "# root method ( method1 )"));
 		assertTrue(tree.contains("com.example.samples.Hogo#method3()"));
+	}
+
+	@Test
+	void countsMarkerClassesWithCrLfTreeOutput() {
+		final String report = DeptTreeApplication.buildMarkerReport(
+			"com.example.Fuga#method1()\r\ncom.example.Taco#method2()",
+			new LinkedHashSet<String>(Arrays.asList("com.example.Fuga", "com.example.Taco")));
+
+		assertTrue(report.contains("(1) com.example.Fuga"));
+		assertTrue(report.contains("(1) com.example.Taco"));
 	}
 
 	@Test

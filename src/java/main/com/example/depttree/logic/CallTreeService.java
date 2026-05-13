@@ -13,6 +13,8 @@ import com.example.depttree.logic.BytecodeRepository.MethodCall;
  */
 final class CallTreeService {
 
+	private static final String LINE_SEPARATOR = System.lineSeparator();
+
 	private final BytecodeRepository repository;
 	private final int maxDepth;
 
@@ -101,11 +103,19 @@ final class CallTreeService {
 	}
 
 	private static String joinLines(final List<String> lines) {
-		return String.join("\n", lines);
+		return String.join(LINE_SEPARATOR, lines);
 	}
 
 	private static String joinWithThreeBlankLines(final List<String> trees) {
-		return String.join("\n\n\n\n", trees);
+		return String.join(repeatLineSeparator(4), trees);
+	}
+
+	private static String repeatLineSeparator(final int count) {
+		final StringBuilder builder = new StringBuilder();
+		for (int index = 0; index < count; index++) {
+			builder.append(LINE_SEPARATOR);
+		}
+		return builder.toString();
 	}
 
 	private static final class RenderNode {
