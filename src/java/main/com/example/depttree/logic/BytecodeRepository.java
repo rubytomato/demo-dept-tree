@@ -280,6 +280,7 @@ final class BytecodeRepository {
 		final ClassNode classNode = new ClassNode();
 		new ClassReader(classBytes).accept(classNode, 0);
 		final String className = classNode.name.replace('/', '.');
+		LOGGER.trace("Loaded class file: {} from {}", className, source);
 		final String superName = classNode.superName == null ? null : classNode.superName.replace('/', '.');
 		final List<String> interfaces = toClassNames(classNode.interfaces);
 		final AnalyzedClass analyzedClass = new AnalyzedClass(className, superName, interfaces, classNode.access);

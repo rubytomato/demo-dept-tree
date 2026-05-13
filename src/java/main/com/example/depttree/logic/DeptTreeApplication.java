@@ -84,7 +84,7 @@ public class DeptTreeApplication {
 				final String treeOutput = callTreeService.buildTree(rootMethod);
 				accumulateMarkerCounts(treeOutput, markerCounts);
 				final boolean hasFollowingOutput = index < rootMethods.size() - 1 || !markerCounts.isEmpty();
-				LOGGER.info("{}{}", treeOutput, hasFollowingOutput ? "\n\n\n" : "");
+				LOGGER.info("\n{}{}", treeOutput, hasFollowingOutput ? "\n\n\n" : "");
 				repository.releaseProcessedRoot(rootMethod);
 			}
 			if (!markerCounts.isEmpty()) {
@@ -195,7 +195,7 @@ public class DeptTreeApplication {
 			if (entry.getValue().intValue() == 0) {
 				lines.add("* " + entry.getKey());
 			} else {
-				lines.add("* " + entry.getKey() + " (" + entry.getValue() + ")");
+				lines.add("* (" + entry.getValue() + ") " + entry.getKey());
 			}
 		}
 		return String.join("\n", lines);
