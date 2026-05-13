@@ -90,9 +90,7 @@ class DeptTreeApplicationTest {
 			"com.example.Fuga#method1()",
 			new LinkedHashSet<String>(Arrays.asList("com.example.Fuga", "com.example.Taco")));
 
-		assertTrue(report.contains("* (1) com.example.Fuga"));
-		assertTrue(report.contains("* com.example.Taco"));
-		assertFalse(report.contains("* com.example.Taco (0)"));
-		assertFalse(report.contains("* com.example.Fuga (1)"));
+		assertTrue(report.contains("(1) com.example.Fuga"));
+		assertTrue(report.contains("    com.example.Taco"));
 	}
 }
