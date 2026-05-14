@@ -67,6 +67,7 @@ public class DeptTreeApplication {
 			}
 			analyzeTargets = expandJarTargets(analyzeTargets);
 			final PackageExclusions packageExclusions = loadPackageExclusions(options.excludePath);
+			logPackageExclusions(packageExclusions);
 			final BytecodeRepository repository = BytecodeRepository.load(analyzeTargets, packageExclusions);
 			if (!repository.hasClass(options.rootClass)) {
 				throw new IllegalArgumentException("Root class was not found in analyze targets: " + options.rootClass);
@@ -177,6 +178,17 @@ public class DeptTreeApplication {
 			}
 		}
 		return PackageExclusions.from(excludedPackages);
+	}
+
+	private static void logPackageExclusions(final PackageExclusions packageExclusions) {
+		LOGGER.info("{}", buildPackageExclusionReport(packageExclusions));
+	}
+
+	static String buildPackageExclusionReport(final PackageExclusions packageExclusions) {
+		final List<String> lines = new ArrayList<String>();
+		lines.add("Default excluded packages: " + packageExclusions.getDefaultPackageExclusions());
+		lines.add("Additional excluded packages: " + packageExclusions.getConfiguredPackageExclusions());
+		return String.join(LINE_SEPARATOR, lines);
 	}
 
 	static String buildMarkerReport(final String treeOutput, final LinkedHashSet<String> markerClasses) {

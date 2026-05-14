@@ -51,6 +51,15 @@ class DeptTreeApplicationTest {
 	}
 
 	@Test
+	void buildsPackageExclusionReportWithDefaultAndAdditionalPackages() {
+		final String report = DeptTreeApplication.buildPackageExclusionReport(
+			PackageExclusions.from(Arrays.asList("co.jp.example.exclude.", "com.example.target")));
+
+		assertTrue(report.contains("Default excluded packages: [java., javax., sun., com.sun., jdk., org., io.]"));
+		assertTrue(report.contains("Additional excluded packages: [co.jp.example.exclude., com.example.target]"));
+	}
+
+	@Test
 	void excludesConfiguredExactPackage() throws Exception {
 		final BytecodeRepository repository = BytecodeRepository.load(
 			Arrays.asList(Paths.get("build/classes/java/main/com/example/samples")),
@@ -62,6 +71,21 @@ class DeptTreeApplicationTest {
 
 		assertFalse(tree.contains("com.example.samples.Fuga#method1(Long)"));
 		assertFalse(tree.contains("com.example.samples.Poyo#method3(String)"));
+	}
+
+	@Test
+	void excludesConfiguredPackagePrefixFromDirectPackage() throws Exception {
+		final BytecodeRepository repository = BytecodeRepository.load(
+			Arrays.asList(
+				Paths.get("build/classes/java/main/com/example/samples"),
+				Paths.get("build/classes/java/main/com/example/other/exclude")),
+			PackageExclusions.from(Arrays.asList("com.example.other.exclude.")));
+		final CallTreeService callTreeService = new CallTreeService(repository, 20);
+
+		final String tree = callTreeService.buildTree(
+			new MethodKey("com.example.samples.Hoge", "method1", "(Ljava/lang/String;Ljava/lang/String;)V"));
+
+		assertFalse(tree.contains("com.example.other.exclude.Moge#method1()"));
 	}
 
 	@Test

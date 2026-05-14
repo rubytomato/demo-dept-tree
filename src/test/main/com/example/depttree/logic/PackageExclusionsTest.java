@@ -21,7 +21,8 @@ class PackageExclusionsTest {
 	void excludesPackagePrefixWhenRuleHasTrailingDot() {
 		final PackageExclusions exclusions = PackageExclusions.from(Arrays.asList("com.example.target."));
 
+		assertTrue(exclusions.isExcludedClass("com.example.target.Hoge"));
 		assertTrue(exclusions.isExcludedClass("com.example.target.child.Hoge"));
-		assertFalse(exclusions.isExcludedClass("com.example.target.Hoge"));
+		assertFalse(exclusions.isExcludedClass("com.example.targeted.Hoge"));
 	}
 }

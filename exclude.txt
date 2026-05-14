@@ -1,1 +1,1 @@
-co.jp.example.exclude.
+com.example.other.exclude.

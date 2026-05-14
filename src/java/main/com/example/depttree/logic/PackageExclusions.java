@@ -11,10 +11,14 @@ final class PackageExclusions {
 
 	private static final List<String> DEFAULT_PREFIX_EXCLUSIONS = createDefaultPrefixExclusions();
 
+	private final List<String> configuredPackageExclusions;
 	private final List<String> exactPackageExclusions;
 	private final List<String> prefixPackageExclusions;
 
-	private PackageExclusions(final List<String> exactPackageExclusions, final List<String> prefixPackageExclusions) {
+	private PackageExclusions(final List<String> configuredPackageExclusions,
+		final List<String> exactPackageExclusions,
+		final List<String> prefixPackageExclusions) {
+		this.configuredPackageExclusions = configuredPackageExclusions;
 		this.exactPackageExclusions = exactPackageExclusions;
 		this.prefixPackageExclusions = prefixPackageExclusions;
 	}
@@ -24,6 +28,7 @@ final class PackageExclusions {
 	}
 
 	static PackageExclusions from(final List<String> configuredPackages) {
+		final List<String> configuredExclusions = new ArrayList<String>(configuredPackages);
 		final List<String> exactExclusions = new ArrayList<String>();
 		final List<String> prefixExclusions = new ArrayList<String>(DEFAULT_PREFIX_EXCLUSIONS);
 		for (final String configuredPackage : configuredPackages) {
@@ -33,7 +38,15 @@ final class PackageExclusions {
 				exactExclusions.add(configuredPackage);
 			}
 		}
-		return new PackageExclusions(exactExclusions, prefixExclusions);
+		return new PackageExclusions(configuredExclusions, exactExclusions, prefixExclusions);
+	}
+
+	List<String> getDefaultPackageExclusions() {
+		return new ArrayList<String>(DEFAULT_PREFIX_EXCLUSIONS);
+	}
+
+	List<String> getConfiguredPackageExclusions() {
+		return new ArrayList<String>(configuredPackageExclusions);
 	}
 
 	boolean isExcludedClass(final String className) {
@@ -45,11 +58,21 @@ final class PackageExclusions {
 			return true;
 		}
 		for (final String prefixExclusion : prefixPackageExclusions) {
-			if (packageName.startsWith(prefixExclusion)) {
+			if (matchesPrefixExclusion(packageName, prefixExclusion)) {
 				return true;
 			}
 		}
 		return false;
+	}
+
+	private static boolean matchesPrefixExclusion(final String packageName, final String prefixExclusion) {
+		if (packageName.startsWith(prefixExclusion)) {
+			return true;
+		}
+		if (!prefixExclusion.endsWith(".")) {
+			return false;
+		}
+		return packageName.equals(prefixExclusion.substring(0, prefixExclusion.length() - 1));
 	}
 
 	private static String extractPackageName(final String className) {
@@ -68,7 +91,6 @@ final class PackageExclusions {
 		exclusions.add("com.sun.");
 		exclusions.add("jdk.");
 		exclusions.add("org.");
-		exclusions.add("net.");
 		exclusions.add("io.");
 		return exclusions;
 	}
