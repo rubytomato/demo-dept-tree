@@ -5,6 +5,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.example.depttree.logic.BytecodeRepository.AnalyzedMethod;
 import com.example.depttree.logic.BytecodeRepository.MethodCall;
 
@@ -13,6 +16,7 @@ import com.example.depttree.logic.BytecodeRepository.MethodCall;
  */
 final class CallTreeService {
 
+	private static final Logger LOGGER = LogManager.getLogger(CallTreeService.class);
 	private static final String LINE_SEPARATOR = System.lineSeparator();
 
 	private final BytecodeRepository repository;
@@ -33,6 +37,7 @@ final class CallTreeService {
 
 	String buildTree(final MethodKey rootMethod) {
 		final List<String> lines = new ArrayList<String>();
+		lines.add(LINE_SEPARATOR);
 		lines.add("# ===========");
 		lines.add("# root method ( " + rootMethod.name + " )");
 		lines.add("# ===========");
@@ -47,8 +52,19 @@ final class CallTreeService {
 		if (analyzedMethod == null) {
 			return;
 		}
+
+		LOGGER.debug("Rendering children. method={}, depth={}, prefix={}, stack={}", currentMethod, depth, prefix,
+			stack);
+
 		stack.add(currentMethod);
 		final List<RenderNode> children = new ArrayList<RenderNode>();
+
+		/*
+		 * 現在のメソッドから見つかった呼び出し先を走査し、除外対象は無視する。
+		 * 深さ制限に達した呼び出しは MAX として記録し、呼び出し先を解決できない場合は
+		 * UNRESOLVED として保持する。解決できた呼び出し先は後続の描画対象として追加する。
+		 */
+		LOGGER.debug("Finding call targets. method={}, methodCalls={}", currentMethod, analyzedMethod.methodCalls.size());
 		for (final MethodCall methodCall : analyzedMethod.methodCalls) {
 			if (repository.isExcludedClass(methodCall.owner)) {
 				continue;
@@ -63,10 +79,17 @@ final class CallTreeService {
 					methodCall.exceptionHandler));
 				continue;
 			}
+			LOGGER.debug("Resolved call targets. method={}, methodCall={}, targets={}", currentMethod, methodCall, targets.size());	
 			for (final MethodKey target : targets) {
 				children.add(RenderNode.resolved(target, methodCall.exceptionHandler));
 			}
 		}
+
+		/*
+		 * 収集した子ノードをツリー形式の文字列として順番に出力する。
+		 * 深さ上限・未解決・循環参照は専用ラベル付きで描画し、通常の呼び出し先だけ
+		 * 次の階層へ再帰して、枝線の接頭辞も末尾ノードかどうかで切り替える。
+		 */
 		for (int index = 0; index < children.size(); index++) {
 			final RenderNode child = children.get(index);
 			final boolean last = index == children.size() - 1;

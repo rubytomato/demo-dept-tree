@@ -59,12 +59,14 @@ public class DeptTreeApplication {
 				LOGGER.info("{}", usageWriter.toString().trim());
 				return 0;
 			}
+
 			validateDepth(options.depth);
 			final AnalyzePathResolver pathResolver = new AnalyzePathResolver();
 			List<Path> analyzeTargets = pathResolver.resolveAnalyzeTargets(options.analyze);
 			if (analyzeTargets.isEmpty()) {
 				throw new IllegalArgumentException("No analyze targets were found.");
 			}
+
 			analyzeTargets = expandJarTargets(analyzeTargets);
 			final PackageExclusions packageExclusions = loadPackageExclusions(options.excludePath);
 			logPackageExclusions(packageExclusions);
@@ -72,6 +74,7 @@ public class DeptTreeApplication {
 			if (!repository.hasClass(options.rootClass)) {
 				throw new IllegalArgumentException("Root class was not found in analyze targets: " + options.rootClass);
 			}
+
 			LOGGER.info("Root class source: {}", repository.findClassSource(options.rootClass));
 			final List<MethodKey> rootMethods = repository.findRootMethods(options.rootClass);
 			if (rootMethods.isEmpty()) {
@@ -79,20 +82,25 @@ public class DeptTreeApplication {
 			}
 			LOGGER.info("Root methods: {}", rootMethods.stream().map(method -> method.name).collect(Collectors.toList()));
 			repository.prepareForRootProcessing(rootMethods);
+
 			final CallTreeService callTreeService = new CallTreeService(repository, options.depth);
 			final LinkedHashSet<String> markerClasses = loadMarkerClasses(options.markerPath);
 			final Map<String, Integer> markerCounts = initializeMarkerCounts(markerClasses);
+
 			for (int index = 0; index < rootMethods.size(); index++) {
 				final MethodKey rootMethod = rootMethods.get(index);
+				LOGGER.info("#{}. Processing root method: {}", index, rootMethod.name);
 				final String treeOutput = callTreeService.buildTree(rootMethod);
 				accumulateMarkerCounts(treeOutput, markerCounts);
 				final boolean hasFollowingOutput = index < rootMethods.size() - 1 || !markerCounts.isEmpty();
 				LOGGER.info("{}{}{}", LINE_SEPARATOR, treeOutput, hasFollowingOutput ? repeatLineSeparator(3) : "");
 				repository.releaseProcessedRoot(rootMethod);
 			}
+
 			if (!markerCounts.isEmpty()) {
 				LOGGER.info("{}", buildMarkerReport(markerCounts));
 			}
+
 			return 0;
 		} catch (final Exception exception) {
 			LOGGER.error("Application failed.", exception);
@@ -220,6 +228,7 @@ public class DeptTreeApplication {
 
 	private static String buildMarkerReport(final Map<String, Integer> counts) {
 		final List<String> lines = new ArrayList<String>();
+		lines.add(LINE_SEPARATOR);
 		lines.add("# ==============");
 		lines.add("# marker classes report");
 		lines.add("# ==============");

@@ -135,6 +135,15 @@ final class BytecodeRepository {
 			Integer.valueOf(releasedMethodCount), rootMethod);
 	}
 
+	/**
+	 * Resolves all analyzed methods that may be reached by the given bytecode method invocation.
+	 * The result keeps insertion order and may include the declared owner method, an implementation
+	 * found by virtual dispatch through the superclass chain, concrete interface implementations,
+	 * and concrete overrides of an abstract declared method.
+	 *
+	 * @param methodCall the bytecode-level method invocation to resolve
+	 * @return reachable analyzed method candidates in deterministic order without duplicates
+	 */
 	List<MethodKey> resolveCallTargets(final MethodCall methodCall) {
 		final LinkedHashSet<MethodKey> resolved = new LinkedHashSet<MethodKey>();
 		final MethodKey declaredKey = new MethodKey(methodCall.owner, methodCall.name, methodCall.descriptor);
