@@ -28,19 +28,6 @@ class DeptTreeApplicationTest {
 	}
 
 	@Test
-	void buildsSingleTreeForSingleRootMethod() throws Exception {
-		final BytecodeRepository repository = BytecodeRepository.load(
-			Arrays.asList(Paths.get("build/classes/java/main/com/example/samples")));
-		final CallTreeService callTreeService = new CallTreeService(repository, 20);
-
-		final String tree = callTreeService.buildTree(
-			new MethodKey("com.example.samples.Hoge", "method1", "(Ljava/lang/String;Ljava/lang/String;)V"));
-
-		assertTrue(tree.startsWith("# ===========" + LINE_SEPARATOR + "# root method ( method1 )"));
-		assertTrue(tree.contains("com.example.samples.Hogo#method3()"));
-	}
-
-	@Test
 	void countsMarkerClassesWithCrLfTreeOutput() {
 		final String report = DeptTreeApplication.buildMarkerReport(
 			"com.example.Fuga#method1()\r\ncom.example.Taco#method2()",

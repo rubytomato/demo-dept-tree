@@ -53,7 +53,7 @@ final class CallTreeService {
 			return;
 		}
 
-		LOGGER.debug("Rendering children. method={}, depth={}, prefix={}, stack={}", currentMethod, depth, prefix,
+		LOGGER.debug("Rendering children. method={}, depth={}, prefix={}, stack={}", currentMethod.name, depth, prefix,
 			stack);
 
 		stack.add(currentMethod);
@@ -64,7 +64,6 @@ final class CallTreeService {
 		 * 深さ制限に達した呼び出しは MAX として記録し、呼び出し先を解決できない場合は
 		 * UNRESOLVED として保持する。解決できた呼び出し先は後続の描画対象として追加する。
 		 */
-		LOGGER.debug("Finding call targets. method={}, methodCalls={}", currentMethod, analyzedMethod.methodCalls.size());
 		for (final MethodCall methodCall : analyzedMethod.methodCalls) {
 			if (repository.isExcludedClass(methodCall.owner)) {
 				continue;
@@ -79,7 +78,6 @@ final class CallTreeService {
 					methodCall.exceptionHandler));
 				continue;
 			}
-			LOGGER.debug("Resolved call targets. method={}, methodCall={}, targets={}", currentMethod, methodCall, targets.size());	
 			for (final MethodKey target : targets) {
 				children.add(RenderNode.resolved(target, methodCall.exceptionHandler));
 			}
