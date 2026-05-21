@@ -262,7 +262,7 @@ final class BytecodeRepository {
 	}
 
 	private void loadTarget(final Path target) throws IOException {
-		LOGGER.debug("Loading analyze target: {}", target);
+		LOGGER.trace("Loading analyze target: {}", target);
 		if (Files.isDirectory(target)) {
 			Files.walk(target)
 				.filter(Files::isRegularFile)
